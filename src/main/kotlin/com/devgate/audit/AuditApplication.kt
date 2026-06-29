@@ -1,11 +1,11 @@
-package com.app.template
+package com.devgate.audit
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class SpringBootKotlinTemplateApplication
+class AuditApplication
 
 fun main(args: Array<String>) {
-	runApplication<SpringBootKotlinTemplateApplication>(*args)
+	runApplication<AuditApplication>(*args)
 }

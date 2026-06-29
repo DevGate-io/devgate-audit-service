@@ -1,6 +1,17 @@
+
+rabbitmq:
+  queue: audit.queue
+  exchange: audit.exchange
+  routingKey: audit.routingKey
+
 spring:
   application:
-    name: spring-boot-kotlin-template
+    name: devgate-audit-service
+  rabbitmq:
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+    port: ${RABBITMQ_PORT:5672}
+    host: ${RABBITMQ_HOST:localhost}
 
   docker:
     compose:
@@ -14,7 +25,7 @@ spring:
 #    type: redis
   datasource:
     driver-class-name: org.postgresql.Driver
-    username: ${POSTGRES_USERNAME}
+    username: ${POSTGRES_USER}
     password: ${POSTGRES_PASSWORD}
     url: jdbc:postgresql://${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
 #  data:
@@ -26,13 +37,13 @@ spring:
       add-mappings: false
 
 server:
-  port: 8080
+  port: 8082
 
 logging:
   level:
     com:
-      app:
-        template: DEBUG
+      devgate:
+        audit: DEBUG
     org:
       hibernate:
         transaction: DEBUG

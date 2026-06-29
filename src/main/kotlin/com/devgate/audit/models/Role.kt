@@ -1,0 +1,9 @@
+package com.devgate.audit.models
+
+enum class Role(private val roleName: String) {
+	MEMBER("member"),
+	ADMIN("admin"),
+	MANAGER("manager"),
+	DEVOPS("devops"),
+	QA("qa");
+}

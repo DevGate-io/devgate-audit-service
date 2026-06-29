@@ -1,0 +1,47 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1
+      author: admin
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: audit_events
+      changes:
+        - createSequence:
+            sequenceName: audit_events_seq
+            startValue: 1
+            incrementBy: 50
+        - createTable:
+            tableName: audit_events
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: action
+                  type: varchar(255)
+              - column:
+                  name: actor_id
+                  type: uuid
+              - column:
+                  name: target_type
+                  type: varchar(255)
+              - column:
+                  name: target_id
+                  type: varchar(255)
+              - column:
+                  name: target_label
+                  type: varchar(255)
+              - column:
+                  name: payload
+                  type: text
+              - column:
+                  name: created_at
+                  type: timestamp
+                  defaultValueComputed: now()
+                  constraints:
+                    nullable: false

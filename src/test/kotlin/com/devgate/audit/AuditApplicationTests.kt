@@ -1,10 +1,10 @@
-package com.app.template
+package com.devgate.audit
 
 import org.junit.jupiter.api.Test
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-class SpringBootKotlinTemplateApplicationTests {
+class AuditApplicationTests {
 
 	@Test
 	fun contextLoads() {

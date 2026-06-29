@@ -7,7 +7,13 @@ plugins {
 	kotlin("plugin.jpa") version "2.2.21"
 }
 
-group = "com.app"
+allOpen {
+	annotation("jakarta.persistence.Entity")
+	annotation("jakarta.persistence.MappedSuperclass")
+	annotation("jakarta.persistence.Embeddable")
+}
+
+group = "com.devgate.audit"
 version = "0.0.1-SNAPSHOT"
 description = "spring-boot-kotlin-template"
 
@@ -21,6 +27,8 @@ repositories {
 	mavenCentral()
 }
 
+configurations.liquibaseRuntime.configure { extendsFrom(configurations.runtimeOnly.get()) }
+
 dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-rest")
 	implementation("org.springframework.boot:spring-boot-starter-jdbc")
@@ -30,6 +38,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.springframework.boot:spring-boot-starter-webmvc")
 	implementation("org.springframework.boot:spring-boot-starter-actuator")
+	implementation("org.springframework.boot:spring-boot-starter-amqp")
 
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
 	implementation("tools.jackson.module:jackson-module-kotlin")
@@ -51,7 +60,6 @@ dependencies {
 	liquibaseRuntime("org.liquibase:liquibase-core:5.0")
 	liquibaseRuntime("org.liquibase:liquibase-groovy-dsl:2.1.1")
 	liquibaseRuntime("org.yaml:snakeyaml:2.0")
-	liquibaseRuntime("org.postgresql:postgresql")
 }
 
 kotlin {
