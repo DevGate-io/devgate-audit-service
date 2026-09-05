@@ -12,6 +12,11 @@ enum class Action(val value: String) {
 	SERVICE_DELETED("service.deleted"),
 	TEMPLATE_USED("template.used"),
 
+	SECRET_CREATED("secret.created"),
+	SECRET_UPDATED("secret.updated"),
+	SECRET_DELETED("secret.deleted"),
+	SECRET_ROTATED("secret.rotated"),
+
 	TEAM_MEMBER_ADDED("team.member.added"),
 	TEAM_MEMBER_REMOVED("team.member.removed"),
 	TEAM_MEMBER_UPDATED("team.member.updated"),
