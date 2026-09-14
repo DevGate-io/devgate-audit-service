@@ -1,0 +1,53 @@
+@startuml "audit-service — flow событий"
+
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 13
+skinparam sequence {
+  ArrowColor #555555
+  LifeLineBorderColor DarkSlateGray
+  LifeLineBackgroundColor #E8EAF6
+  ParticipantBorderColor DarkSlateGray
+  ParticipantBackgroundColor<<producer>> #FFE0B2
+  ParticipantBackgroundColor<<broker>> #FFF3CD
+  ParticipantBackgroundColor<<consumer>> #C8E6C9
+  ParticipantBackgroundColor<<db>> #BBDEFB
+}
+
+title devgate-audit-service — приём событий аудита и чтение лога
+
+participant "Сервис-продюсер\n(user/catalog/integration/\nscaffolder/summary)" as PROD <<producer>>
+participant "RabbitMQ 4\naudit.exchange (direct)" as RMQ <<broker>>
+participant "MessageServiceImpl\n@RabbitListener" as LIST <<consumer>>
+participant "AuditLogService" as SVC <<consumer>>
+database "PostgreSQL\naudit_events" as PG <<db>>
+participant "AuditLogController\nGET /audit" as CTRL <<consumer>>
+actor "Потребитель API" as API
+
+PROD -> PROD : бизнес-событие совершено\n(save + publish best-effort)
+PROD -> RMQ : publish LogMessagePayload\nrouting key audit.routingKey
+activate RMQ
+  RMQ -> LIST : доставка копии в audit.queue
+  activate LIST
+    LIST -> SVC : listener(payload)
+    activate SVC
+      SVC -> PG : toAuditLog() + save
+      SVC --> LIST : ok (commit)
+    deactivate SVC
+    LIST --> RMQ : ack
+  deactivate LIST
+  RMQ --> PROD : ack (store-and-forward)
+deactivate RMQ
+
+API -> CTRL : GET /audit
+activate CTRL
+  CTRL -> SVC : getLogs()
+  SVC -> PG : findAll()
+  PG --> SVC : List<AuditLog>
+  SVC --> CTRL
+  CTRL --> API : 200 List<AuditLog>
+deactivate CTRL
+
+note over PROD: Продюсер НЕ ждёт консьюмера:\nошибка publish только логируется
+note over RMQ: direct exchange — каждая очередь получает\nнезависимую копию (audit.queue + notifications.queue)
+
+@enduml

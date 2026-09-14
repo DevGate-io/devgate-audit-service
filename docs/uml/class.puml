@@ -1,0 +1,131 @@
+@startuml "audit-service — модель данных"
+
+skinparam classAttributeIconSize 0
+skinparam defaultFontName "Arial"
+skinparam defaultFontSize 13
+skinparam ArrowColor #555555
+skinparam class {
+  BorderColor DarkSlateGray
+  BackgroundColor<<entity>> #C8E6C9
+  BackgroundColor<<enum>> #FFF3CD
+  BackgroundColor<<dto>> #BBDEFB
+  BackgroundColor<<service>> #E1BEE7
+  BackgroundColor<<controller>> #BBDEFB
+  BackgroundColor<<repo>> #FFF3CD
+}
+
+title devgate-audit-service — модель данных и слои (порт 8082, Postgres 5434)
+
+package "models" {
+  class AuditLog <<entity>> {
+    id : Long?
+    action : Action?
+    actorId : UUID?
+    target : Target?
+    payload : String?
+    createdAt : LocalDateTime
+    --
+    table: audit_events
+  }
+
+  class Target <<entity>> {
+    type : String?
+    id : String?
+    label : String?
+    --
+    @Embeddable
+  }
+
+  enum Action <<enum>> {
+    project.created
+    project.updated
+    project.deleted
+    service.created
+    service.updated
+    service.deleted
+    template.used
+    secret.created
+    secret.updated
+    secret.deleted
+    secret.rotated
+    team.member.added
+    team.member.removed
+    team.member.updated
+    team.created
+    team.updated
+    team.deleted
+    integration.connected
+    integration.disconnected
+    user.created
+    user.updated
+    user.deleted
+    user.role_changed
+    summary.generated
+  }
+
+  enum Role <<enum>> {
+    MEMBER
+    ADMIN
+    MANAGER
+    DEVOPS
+    QA
+  }
+}
+
+package "dto" {
+  class LogMessagePayload <<dto>> {
+    action : Action?
+    actorId : UUID?
+    target : Target?
+    payload : String?
+    createdAt : LocalDateTime?
+    --
+    toAuditLog() : AuditLog
+  }
+}
+
+package "service / controller / repo" {
+  interface MessageService <<service>> {
+    listener(message: LogMessagePayload)
+  }
+
+  class MessageServiceImpl <<service>> {
+    @RabbitListener audit.exchange
+    -> audit.queue
+  }
+
+  interface AuditLogService <<service>> {
+    getLogs()
+    saveLog(log: AuditLog)
+  }
+
+  class AuditLogController <<controller>> {
+    GET /audit
+  }
+
+  interface AuditLogRepository <<repo>> {
+    <<extends JpaRepository>>
+  }
+}
+
+AuditLog *-- Target : @Embedded
+AuditLog ..> Action : action
+LogMessagePayload ..> Action
+LogMessagePayload ..> Target
+MessageServiceImpl ..> MessageService : implements
+MessageServiceImpl --> AuditLogService
+AuditLogController --> AuditLogService
+AuditLogService --> AuditLogRepository
+
+note bottom of AuditLog
+  Immutable audit-лог; пишется только
+  при консьюминге из RabbitMQ.
+end note
+
+note bottom of Action
+  ⚠️ Единый кросс-сервисный enum: всякое новое
+  значение у продюсеров зеркалится СЮДА,
+  иначе десериализация ломается.
+end note
+
+@enduml
